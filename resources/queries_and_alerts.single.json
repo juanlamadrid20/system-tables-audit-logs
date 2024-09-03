@@ -1,0 +1,23 @@
+{
+  "queries_and_alerts": [
+    {
+      "name": "repeated_failed_login_attempts",
+      "description": "Repeated failed login attempts could indicate an attacker trying to brute force access to your lakehouse. The following query can be used to detect repeated failed login attempts over a 60 minute period within the last 24 hours.",
+      "query": "SELECT WINDOW(event_time, '60 minutes').start AS window_start, WINDOW(event_time, '60 minutes').end AS window_end, ifnull(user_identity.email, request_params.user) AS email,  collect_set(action_name) AS action_names, collect_set(response.error_message) AS error_messages, collect_set(response.status_code) AS response_codes, count(*) AS total FROM system.access.audit WHERE action_name IN ('aadBrowserLogin', 'aadTokenLogin', 'certLogin', 'jwtLogin', 'login', 'oidcBrowserLogin', 'samlLogin', 'tokenLogin') AND response.status_code IN (401, 403) AND WINDOW(event_time, '60 minutes').end >= current_timestamp() - INTERVAL 24 HOURS GROUP BY 1, 2, 3 ORDER BY total DESC",
+      "parent": "system_tables/audit/admin/queries/",
+      "alert": {
+        "name": "repeated_failed_login_attempts",
+        "options": {
+          "column": "total",
+          "custom_body": "<h3>There have been the following failed login attempts within the last 24 hours:</h3><br>{{QUERY_RESULT_TABLE}}<br><a href='{{QUERY_URL}}'>Link to query</a><br><a href='{{ALERT_URL}}'>Link to alert</a>",
+          "custom_subject": "Alert {{ALERT_NAME}} changed status to {{ALERT_STATUS}} because the number of unexpected events is {{ALERT_CONDITION}} than {{ALERT_THRESHOLD}}",
+          "muted": false,
+          "op": ">",
+          "value": "1"
+        },
+        "rearm": "3600",
+        "parent": "system_tables/audit/admin/alerts/"
+      }
+    }
+  ]
+}

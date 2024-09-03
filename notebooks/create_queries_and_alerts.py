@@ -11,7 +11,7 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-sql_queries = read_json_file(json_file="../resources/queries_and_alerts.json")["queries_and_alerts"]
+sql_queries = read_json_file(json_file="../resources/queries_and_alerts.single.json")["queries_and_alerts"]
 
 databricks_sql_helper = DatabricksSQLHelper()
 
